@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup Generator</title>
+<style>
+  :root {
+    --bg: #04060a;
+    --surface: #0e131c;
+    --border: #263041;
+    --text: #eef0f4;
+    --muted: #8a94a6;
+    --faint: #5b6473;
+    --accent: #3b82f6;
+  }
+  * { box-sizing: border-box; }
+  html { scrollbar-width: thin; scrollbar-color: var(--border) var(--bg); }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+  }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; border: 2px solid var(--bg); }
+  ::-webkit-scrollbar-thumb:hover { background: #3a4356; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 40px 24px 0; }
+
+  .app-header { margin-bottom: 28px; }
+  h1 { font-size: 26px; font-weight: 800; margin: 0 0 6px; }
+  .lede { color: var(--muted); font-size: 14px; margin: 0; max-width: 620px; }
+
+  /* min-width:0 di sini penting: default grid item adalah min-width:auto (tidak mau
+     menyusut di bawah lebar konten). Tanpa ini, panel meluber ke kanan saat layar
+     dipersempit alih-alih menyusut, dan .wrap yang seharusnya center jadi kelihatan
+     mepet kiri karena separuh kontennya kepotong scrollbar horizontal. */
+  .layout { display: grid; grid-template-columns: 1fr; gap: 24px; min-width: 0; }
+  .layout > * { min-width: 0; }
+  @media (min-width: 900px) {
+    .layout { grid-template-columns: minmax(360px, 440px) 1fr; align-items: start; }
+    .preview-panel { position: sticky; top: 24px; }
+  }
+
+  .panel {
+    background: var(--surface); border: 1.5px solid var(--border); border-radius: 16px; padding: 28px;
+  }
+
+  .types { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 24px; }
+  .mode-toggle { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 20px 0 4px; }
+  .bg-toggle { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0 4px; }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .type-btn, .mode-btn, .seg-btn {
+    background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 14px 8px; color: var(--muted); font-size: 13px; font-weight: 600;
+    cursor: pointer; text-align: center; transition: border-color .15s, color .15s;
+  }
+  .type-btn:hover, .mode-btn:hover, .seg-btn:hover { border-color: #3a4356; }
+  .type-btn.active, .mode-btn.active, .seg-btn.active { border-color: var(--accent); color: var(--text); background: #0f1a2c; }
+
+  input[type="color"] {
+    width: 100%; height: 44px; padding: 4px; background: var(--bg); border: 1.5px solid var(--border);
+    border-radius: 8px; cursor: pointer;
+  }
+
+  label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin: 20px 0 8px; }
+  label:first-child { margin-top: 0; }
+  label .optional { font-weight: 400; color: var(--faint); }
+  input[type="text"], input[type="url"] {
+    width: 100%; background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px;
+    padding: 12px 14px; color: var(--text); font-size: 14px; font-family: inherit;
+  }
+  input[type="text"]:focus, input[type="url"]:focus { outline: none; border-color: var(--accent); }
+
+  .dropzone {
+    border: 1.5px dashed var(--border); border-radius: 10px; padding: 18px 14px;
+    text-align: center; cursor: pointer; transition: border-color .15s;
+  }
+  .dropzone.hover, .dropzone:hover { border-color: var(--accent); }
+  .dropzone input { display: none; }
+  .dropzone-title { font-size: 13px; font-weight: 600; color: var(--muted); }
+  .dropzone-hint { font-size: 11px; color: var(--faint); margin-top: 2px; }
+  .file-name { margin-top: 6px; font-size: 12px; color: var(--accent); word-break: break-all; }
+
+  .field-group { display: none; }
+  .field-group.visible { display: block; }
+
+  button.submit {
+    margin-top: 28px; width: 100%; background: var(--accent); color: #fff; border: none;
+    border-radius: 8px; padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer;
+    transition: background .15s;
+  }
+  button.submit:hover { background: #2f6fd8; }
+  button.submit:disabled { background: #1e2c40; color: var(--faint); cursor: not-allowed; }
+
+  .status { margin-top: 16px; font-size: 13px; color: var(--muted); min-height: 18px; }
+  .status.error { color: #f87171; }
+
+  .preview-empty {
+    aspect-ratio: 16 / 9; border: 1.5px dashed var(--border); border-radius: 12px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    color: var(--faint); font-size: 13px; text-align: center; padding: 24px;
+  }
+  .preview-empty.hidden { display: none; }
+
+  .result { display: none; }
+  .result.visible { display: block; }
+  .result img { width: 100%; border-radius: 10px; border: 1px solid var(--border); display: block; }
+  .result-actions { margin-top: 14px; }
+  .result-actions a {
+    display: block; text-align: center; padding: 13px; border-radius: 8px; font-size: 14px; font-weight: 700;
+    text-decoration: none; cursor: pointer; background: var(--accent); color: #fff;
+  }
+  .hint { font-size: 12px; color: var(--faint); margin-top: 8px; }
+
+  .site-footer {
+    margin-top: 48px; padding: 24px 0 32px;
+    color: var(--faint); font-size: 12px; text-align: center;
+  }
+  .site-footer a { color: var(--muted); text-decoration: none; }
+  .site-footer a:hover { color: var(--text); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="app-header">
+      <h1>Mockup Generator</h1>
+      <p class="lede">Bikin thumbnail proyek dengan frame browser, phone, atau tablet yang konsisten gayanya. Tidak ada yang tersimpan otomatis, klik "Unduh" untuk menyimpan hasilnya.</p>
+    </div>
+
+    <div class="layout">
+      <div class="panel form-panel">
+        <label>Tipe proyek</label>
+        <div class="types">
+          <div class="type-btn active" data-type="android">Android</div>
+          <div class="type-btn" data-type="blog">Blog</div>
+          <div class="type-btn" data-type="content">Content</div>
+          <div class="type-btn" data-type="web">Web</div>
+        </div>
+
+        <div id="webModeGroup" class="field-group">
+          <label>Sumber</label>
+          <div class="mode-toggle">
+            <div class="mode-btn active" data-mode="url">URL Otomatis</div>
+            <div class="mode-btn" data-mode="upload">Upload Screenshot</div>
+          </div>
+          <p class="hint">Belum di-deploy? Pilih "Upload Screenshot".</p>
+        </div>
+
+        <div id="urlGroup" class="field-group">
+          <label for="url">URL website</label>
+          <input type="url" id="url" placeholder="https://situsanda.com">
+          <p class="hint">Screenshot diambil otomatis dari URL ini.</p>
+
+          <label>Tampilan</label>
+          <div class="mode-toggle" id="viewToggle">
+            <div class="seg-btn active" data-view="desktop">Desktop saja</div>
+            <div class="seg-btn" data-view="dual">Desktop + Mobile</div>
+          </div>
+          <p class="hint">Mode "Desktop + Mobile" mengambil 2 screenshot dari URL yang sama, sedikit lebih lama.</p>
+        </div>
+
+        <div id="webUploadGroup" class="field-group">
+          <label for="appName">Nama aplikasi</label>
+          <input type="text" id="appName" placeholder="Nama aplikasi">
+          <p class="hint">Ditampilkan di address bar, menggantikan URL.</p>
+          <label>Screenshot aplikasi</label>
+          <div class="dropzone" data-slot="0">
+            <div class="dropzone-title">Klik atau seret gambar</div>
+            <div class="file-name"></div>
+            <input type="file" accept="image/*">
+          </div>
+        </div>
+
+        <div id="androidGroup" class="field-group">
+          <label for="androidAppName">Nama aplikasi</label>
+          <input type="text" id="androidAppName" placeholder="Nama aplikasi">
+          <p class="hint">Ditampilkan di samping mockup HP.</p>
+
+          <label>Screenshot layar</label>
+          <div class="row-2">
+            <div class="dropzone" data-slot="0">
+              <div class="dropzone-title">Layar pertama</div>
+              <div class="dropzone-hint">Klik atau seret</div>
+              <div class="file-name"></div>
+              <input type="file" accept="image/*">
+            </div>
+            <div class="dropzone" data-slot="1">
+              <div class="dropzone-title">Layar kedua <span class="optional">(opsional)</span></div>
+              <div class="dropzone-hint">Klik atau seret</div>
+              <div class="file-name"></div>
+              <input type="file" accept="image/*">
+            </div>
+          </div>
+          <p class="hint">Isi 2 layar untuk komposisi 2 HP berdampingan.</p>
+        </div>
+
+        <div id="contentGroup" class="field-group">
+          <div class="row-2">
+            <div>
+              <label for="accountName">Nama akun</label>
+              <input type="text" id="accountName" placeholder="Nama Akun">
+            </div>
+            <div>
+              <label for="username">Username</label>
+              <input type="text" id="username" placeholder="@namaakun">
+            </div>
+          </div>
+          <p class="hint">Tampil sebagai "Nama Akun (@namaakun)". Preview kontennya berupa sketsa abstrak, bukan screenshot asli.</p>
+        </div>
+
+        <label>Warna latar</label>
+        <div class="bg-toggle">
+          <div class="seg-btn active" data-bg="dark">Gelap</div>
+          <div class="seg-btn" data-bg="white">Putih</div>
+          <div class="seg-btn" data-bg="custom">Custom</div>
+        </div>
+        <div id="bgCustomGroup" class="field-group">
+          <input type="color" id="bgCustomInput" value="#04060a">
+        </div>
+        <p class="hint">Berlaku untuk kanvas di luar bezel. Warna bezel HP/browser/tablet tetap konsisten.</p>
+
+        <label for="out">Nama file saat diunduh</label>
+        <input type="text" id="out" placeholder="nama-proyek.png">
+
+        <button class="submit" id="submitBtn">Generate</button>
+        <div class="status" id="status"></div>
+      </div>
+
+      <div class="panel preview-panel">
+        <div class="preview-empty" id="previewEmpty">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="8.5" cy="9.5" r="1.5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M21 15l-5-5-9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Hasil generate akan muncul di sini</span>
+        </div>
+        <div class="result" id="result">
+          <img id="resultImg" alt="Hasil mockup">
+          <div class="result-actions">
+            <a href="#" id="downloadLink" download>Unduh</a>
+          </div>
+          <p class="hint">Belum tersimpan di mana pun sampai kamu klik unduh di atas.</p>
+        </div>
+      </div>
+    </div>
+
+    <footer class="site-footer">
+      <p>Copyright &copy; <span id="year"></span> - Mockup Generator. Created by <a href="https://fandipres.my.id" target="_blank" rel="noopener">fandipres.my.id</a>.</p>
+    </footer>
+  </div>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  let currentType = 'android';
+  let webMode = 'url';
+  let bgMode = 'dark';
+  let viewMode = 'desktop';
+
+  let webUploadFile = null;
+  let androidFile1 = null;
+  let androidFile2 = null;
+
+  const typeButtons = document.querySelectorAll('.type-btn');
+  const webModeGroup = document.getElementById('webModeGroup');
+  const urlGroup = document.getElementById('urlGroup');
+  const urlInput = document.getElementById('url');
+  const webUploadGroup = document.getElementById('webUploadGroup');
+  const appNameInput = document.getElementById('appName');
+  const androidGroup = document.getElementById('androidGroup');
+  const androidAppNameInput = document.getElementById('androidAppName');
+  const contentGroup = document.getElementById('contentGroup');
+  const accountNameInput = document.getElementById('accountName');
+  const usernameInput = document.getElementById('username');
+  const bgCustomGroup = document.getElementById('bgCustomGroup');
+  const bgCustomInput = document.getElementById('bgCustomInput');
+  const outInput = document.getElementById('out');
+  const submitBtn = document.getElementById('submitBtn');
+  const statusEl = document.getElementById('status');
+  const previewEmptyEl = document.getElementById('previewEmpty');
+  const resultEl = document.getElementById('result');
+  const resultImg = document.getElementById('resultImg');
+  const downloadLink = document.getElementById('downloadLink');
+
+  function setupDropzone(zoneEl, onFile) {
+    const input = zoneEl.querySelector('input');
+    const fileNameEl = zoneEl.querySelector('.file-name');
+    const select = file => { onFile(file); fileNameEl.textContent = file.name; };
+
+    zoneEl.addEventListener('click', () => input.click());
+    zoneEl.addEventListener('dragover', e => { e.preventDefault(); zoneEl.classList.add('hover'); });
+    zoneEl.addEventListener('dragleave', () => zoneEl.classList.remove('hover'));
+    zoneEl.addEventListener('drop', e => {
+      e.preventDefault();
+      zoneEl.classList.remove('hover');
+      if (e.dataTransfer.files[0]) select(e.dataTransfer.files[0]);
+    });
+    input.addEventListener('change', () => {
+      if (input.files[0]) select(input.files[0]);
+    });
+  }
+
+  setupDropzone(document.querySelector('#webUploadGroup .dropzone'), f => { webUploadFile = f; });
+  setupDropzone(document.querySelector('#androidGroup .dropzone[data-slot="0"]'), f => { androidFile1 = f; });
+  setupDropzone(document.querySelector('#androidGroup .dropzone[data-slot="1"]'), f => { androidFile2 = f; });
+
+  usernameInput.addEventListener('input', () => {
+    if (usernameInput.value && !usernameInput.value.startsWith('@')) {
+      const pos = usernameInput.selectionStart;
+      usernameInput.value = '@' + usernameInput.value;
+      usernameInput.setSelectionRange(pos + 1, pos + 1);
+    }
+  });
+
+  function updateWebMode() {
+    webModeGroup.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === webMode));
+    urlGroup.classList.toggle('visible', webMode === 'url');
+    webUploadGroup.classList.toggle('visible', webMode === 'upload');
+  }
+
+  webModeGroup.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => { webMode = btn.dataset.mode; updateWebMode(); });
+  });
+
+  document.querySelectorAll('#viewToggle .seg-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      viewMode = btn.dataset.view;
+      document.querySelectorAll('#viewToggle .seg-btn').forEach(b => b.classList.toggle('active', b === btn));
+    });
+  });
+
+  function bgColorValue() {
+    if (bgMode === 'white') return '#ffffff';
+    if (bgMode === 'custom') return bgCustomInput.value;
+    return '#04060a';
+  }
+
+  document.querySelectorAll('.bg-toggle .seg-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      bgMode = btn.dataset.bg;
+      document.querySelectorAll('.bg-toggle .seg-btn').forEach(b => b.classList.toggle('active', b === btn));
+      bgCustomGroup.classList.toggle('visible', bgMode === 'custom');
+    });
+  });
+
+  function setType(type) {
+    currentType = type;
+    typeButtons.forEach(b => b.classList.toggle('active', b.dataset.type === type));
+
+    webModeGroup.classList.remove('visible');
+    urlGroup.classList.remove('visible');
+    webUploadGroup.classList.remove('visible');
+    androidGroup.classList.remove('visible');
+    contentGroup.classList.remove('visible');
+
+    if (type === 'blog') {
+      urlGroup.classList.add('visible');
+    } else if (type === 'web') {
+      webModeGroup.classList.add('visible');
+      updateWebMode();
+    } else if (type === 'android') {
+      androidGroup.classList.add('visible');
+    } else if (type === 'content') {
+      contentGroup.classList.add('visible');
+    }
+  }
+
+  typeButtons.forEach(btn => btn.addEventListener('click', () => setType(btn.dataset.type)));
+
+  function showError(msg) {
+    statusEl.textContent = msg;
+    statusEl.classList.add('error');
+  }
+
+  function showResult(objectUrl, filename) {
+    resultImg.src = objectUrl;
+    downloadLink.href = objectUrl;
+    downloadLink.setAttribute('download', filename);
+    previewEmptyEl.classList.add('hidden');
+    resultEl.classList.add('visible');
+  }
+
+  submitBtn.addEventListener('click', async () => {
+    // Try/catch membungkus seluruh handler (bukan cuma bagian fetch) supaya error tak terduga
+    // apa pun (mis. halaman belum di-refresh setelah update, elemen berubah, dll) selalu tampil
+    // sebagai pesan ke user alih-alih gagal diam-diam (tombol seperti tidak merespons).
+    try {
+      statusEl.textContent = '';
+      statusEl.classList.remove('error');
+
+      const formData = new FormData();
+      formData.append('type', currentType);
+      formData.append('bgColor', bgColorValue());
+      let usesPuppeteerUrl = false;
+
+      if (currentType === 'blog') {
+        if (!urlInput.value.trim()) return showError('Isi URL dulu.');
+        formData.append('url', urlInput.value.trim());
+        formData.append('dualView', viewMode === 'dual' ? 'true' : 'false');
+        usesPuppeteerUrl = true;
+      } else if (currentType === 'web') {
+        if (webMode === 'url') {
+          if (!urlInput.value.trim()) return showError('Isi URL dulu.');
+          formData.append('url', urlInput.value.trim());
+          formData.append('dualView', viewMode === 'dual' ? 'true' : 'false');
+          usesPuppeteerUrl = true;
+        } else {
+          if (!webUploadFile) return showError('Pilih screenshot aplikasi dulu.');
+          formData.append('appName', appNameInput.value.trim() || 'Aplikasi');
+          formData.append('image', webUploadFile);
+        }
+      } else if (currentType === 'android') {
+        if (!androidAppNameInput.value.trim()) return showError('Isi nama aplikasi dulu.');
+        if (!androidFile1) return showError('Pilih screenshot layar pertama dulu.');
+        formData.append('appName', androidAppNameInput.value.trim());
+        formData.append('image', androidFile1);
+        if (androidFile2) formData.append('image2', androidFile2);
+      } else if (currentType === 'content') {
+        if (!accountNameInput.value.trim()) return showError('Isi nama akun dulu.');
+        if (!usernameInput.value.trim()) return showError('Isi username dulu.');
+        formData.append('accountName', accountNameInput.value.trim());
+        formData.append('username', usernameInput.value.trim());
+      }
+
+      submitBtn.disabled = true;
+      statusEl.textContent = usesPuppeteerUrl
+        ? (viewMode === 'dual'
+          ? 'Mengambil screenshot desktop dan mobile, bisa 20 sampai 50 detik.'
+          : 'Mengambil screenshot dan menyusun mockup, bisa 10 sampai 30 detik.')
+        : 'Menyusun mockup...';
+
+      const res = await fetch('/generate', { method: 'POST', body: formData });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Gagal generate.');
+      }
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+
+      const rawName = outInput.value.trim() || `mockup-${currentType}`;
+      const filename = rawName.toLowerCase().endsWith('.png') ? rawName : `${rawName}.png`;
+
+      statusEl.textContent = 'Selesai, klik unduh untuk menyimpan.';
+      showResult(objectUrl, filename);
+    } catch (err) {
+      showError('Gagal: ' + err.message + ' (coba refresh halaman ini kalau terus terjadi)');
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  setType(currentType);
+</script>
+</body>
+</html>

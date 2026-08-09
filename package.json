@@ -1,0 +1,17 @@
+{
+  "name": "mockup-generator",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Generator mockup screenshot proyek dengan frame browser/phone/tablet, tampilan web & CLI",
+  "main": "generate.js",
+  "scripts": {
+    "generate": "node generate.js",
+    "ui": "node server.js"
+  },
+  "dependencies": {
+    "puppeteer": "^23.0.0",
+    "express": "^4.19.0",
+    "multer": "^2.0.0"
+  }
+}

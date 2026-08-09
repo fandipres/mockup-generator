@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1600px; height: 900px; background: {{BG_COLOR}}; display: flex; align-items: center; justify-content: center;
+    font-family: -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  }
+  /* Seluruh komposisi (HP + teks) diperlakukan sebagai satu blok lebar tetap,
+     lalu blok itu di-center di kanvas via justify-content pada body.
+     Rincian lebar: HP 350 + gap 80 + info-panel 560 = 990px total,
+     sisa 1600-990=610 dibagi rata jadi margin 305px kiri-kanan. */
+  .composition { display: flex; align-items: center; gap: 80px; }
+  /* Rasio HP 350x760 (~9:19.5) mendekati rasio layar ponsel modern sesungguhnya. */
+  .phone {
+    width: 350px; height: 760px; flex-shrink: 0;
+    background: #0e131c; border: 2px solid #263041; border-radius: 46px;
+    overflow: hidden; box-shadow: 0 0 0 8px {{BG_COLOR}}; position: relative;
+  }
+  .notch {
+    position: absolute; top: 17px; left: 50%; transform: translateX(-50%);
+    width: 92px; height: 16px; border-radius: 8px; background: #04060a; z-index: 2;
+  }
+  .screen { position: absolute; inset: 0; }
+  .screen img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+
+  .info-panel { width: 560px; flex-shrink: 0; }
+  .app-name { color: {{FG_COLOR}}; font-size: 64px; font-weight: 800; line-height: 1.15; margin-bottom: 40px; }
+  .download-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 2px solid #3b82f6; color: #3b82f6; border-radius: 12px; padding: 20px 44px;
+    font-size: 19px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+  <div class="composition">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen"><img src="{{SCREENSHOT}}" alt=""></div>
+    </div>
+    <div class="info-panel">
+      <div class="app-name">{{APP_NAME}}</div>
+      <div class="download-btn">Download Now</div>
+    </div>
+  </div>
+</body>
+</html>

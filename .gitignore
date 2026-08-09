@@ -1,0 +1,13 @@
+node_modules/
+output/
+
+# Screenshot pribadi yang kamu simpan di sini untuk dipakai CLI (--image ./raw/...).
+# Isinya diabaikan supaya tidak ikut ter-publish tanpa sengaja; foldernya sendiri
+# tetap ada lewat raw/.gitkeep.
+raw/*
+!raw/.gitkeep
+
+# Konteks internal untuk Claude Code (riwayat proyek, nama, domain pribadi), tetap
+# ada di lokal untuk kontinuitas sesi, tapi tidak ikut dipublikasikan.
+.claude/
+CLAUDE.md

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1600px; height: 900px; background: {{BG_COLOR}}; font-family: -apple-system, "Segoe UI", sans-serif; position: relative; }
+  /* Frame + phone digitung sebagai satu blok gabungan lebar 1480px (60-1540),
+     jadi margin kiri-kanan kanvas sama-sama 60px, benar-benar center sebagai
+     satu komposisi, bukan cuma frame-nya doang yang center lalu phone nempel
+     di sisa ruang mana pun. Phone diperbesar ke 280x607 (rasio ~9:19.5). */
+  .frame {
+    position: absolute; top: 90px; left: 60px; width: 1310px; height: 720px;
+    background: #0e131c; border: 2px solid #263041; border-radius: 14px; overflow: hidden;
+  }
+  .topbar {
+    height: 56px; display: flex; align-items: center; gap: 8px; padding: 0 24px;
+    border-bottom: 2px solid #263041;
+  }
+  .dot { width: 14px; height: 14px; border-radius: 50%; background: #39424f; }
+  .address {
+    flex: 1; height: 28px; margin-left: 16px; border-radius: 14px;
+    background: #04060a; border: 1.5px solid #263041; display: flex; align-items: center; padding: 0 14px; gap: 8px;
+  }
+  .address .lock { width: 8px; height: 8px; border-radius: 50%; background: #3b82f6; flex-shrink: 0; }
+  .address .url { color: #8a94a6; font-size: 14px; font-family: ui-monospace, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .content { width: 100%; height: calc(100% - 56px); overflow: hidden; }
+  .content img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+
+  /* HP mobile mengintip di pojok kanan-bawah frame browser, komposisi klasik
+     untuk menunjukkan tampilan situs yang responsif di desktop dan mobile sekaligus. */
+  .phone {
+    position: absolute; top: 243px; left: 1260px; width: 280px; height: 607px; z-index: 2;
+    background: #0e131c; border: 2px solid #263041; border-radius: 40px;
+    overflow: hidden; box-shadow: 0 0 0 8px {{BG_COLOR}};
+  }
+  .notch {
+    position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+    width: 82px; height: 15px; border-radius: 8px; background: #04060a; z-index: 2;
+  }
+  .phone-screen { position: absolute; inset: 0; }
+  .phone-screen img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <div class="topbar">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      <div class="address"><div class="lock"></div><div class="url">{{URL_LABEL}}</div></div>
+    </div>
+    <div class="content"><img src="{{SCREENSHOT}}" alt=""></div>
+  </div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="phone-screen"><img src="{{SCREENSHOT_MOBILE}}" alt=""></div>
+  </div>
+</body>
+</html>
