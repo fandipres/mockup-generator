@@ -1,6 +1,6 @@
 # 🖼️ Mockup Generator
 
-A Node.js tool that generates consistent, on-brand thumbnail mockups (browser, phone, and tablet frames) for your projects. Comes with both a web UI and a CLI, no manual design work needed.
+Mockup Generator is a Node.js tool that automatically produces consistent, on-brand thumbnail mockups. Screenshots of a site or app are wrapped in a browser, phone, or tablet frame depending on the project type, then rendered as a ready-to-use 1600x900 image. Available through both the command line and a simple web UI, no design skills required.
 
 ## ✨ Key Features
 
